@@ -1,24 +1,8 @@
 package io.switchboard.api;
 
 import akka.actor.ActorSystem;
-import akka.http.model.HttpProtocols;
-import akka.http.model.japi.HttpResponse;
-import akka.http.model.japi.*;
-import akka.http.model.japi.headers.AccessControlAllowOrigin;
-import akka.http.model.japi.headers.ContentType;
-import akka.http.model.japi.headers.HttpOriginRange;
 import akka.http.server.japi.*;
-import akka.japi.JavaPartialFunction;
-import akka.stream.scaladsl.PublisherSource;
-import akka.stream.scaladsl.SubscriberSink;
-import akka.util.ByteString;
-import akka.util.ByteString$;
-import com.google.common.collect.Lists;
-import com.google.common.net.HttpHeaders;
-import io.switchboard.kafka.KafkaConsumer;
 import io.switchboard.kafka.KafkaEndpoint;
-
-import java.util.HashMap;
 
 /**
  * Created by Christoph Grotz on 07.12.14.
@@ -48,7 +32,7 @@ public class BasicApi extends HttpApp {
       ).route(
         get(
           handleWith(
-            ServerSendEvent.create("group3","switchboard")
+            ServerSendEvent.create("group3", "switchboard")
           )
         ),
         post(

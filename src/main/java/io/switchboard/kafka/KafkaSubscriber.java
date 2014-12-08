@@ -18,11 +18,11 @@ import java.util.Properties;
  *
  * Created by Christoph Grotz on 06.12.14.
  */
-public class KafkaProducer implements Subscriber<ByteString> {
+public class KafkaSubscriber implements Subscriber<ByteString> {
 
   private final Producer<String, String> producer;
 
-  public KafkaProducer() {
+  public KafkaSubscriber() {
     Properties props = new Properties();
 
     props.put("metadata.broker.list", "localhost:9092");

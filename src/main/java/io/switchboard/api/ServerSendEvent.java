@@ -1,14 +1,13 @@
 package io.switchboard.api;
 
 import akka.http.model.japi.*;
-import akka.http.model.japi.ContentType;
 import akka.http.model.japi.headers.*;
 import akka.http.server.japi.Handler;
 import akka.http.server.japi.RequestContext;
 import akka.http.server.japi.RouteResult;
 import akka.stream.scaladsl.PublisherSource;
 import com.google.common.collect.Lists;
-import io.switchboard.kafka.KafkaConsumer;
+import io.switchboard.kafka.KafkaPublisher;
 
 import java.util.HashMap;
 
@@ -20,7 +19,7 @@ public class ServerSendEvent implements Handler {
   private final String groupId;
   private final String topic;
 
-  public ServerSendEvent(String groupId, String topic) {
+  private ServerSendEvent(String groupId, String topic) {
     this.groupId = groupId;
     this.topic = topic;
   }
@@ -34,7 +33,7 @@ public class ServerSendEvent implements Handler {
       .addHeader(AccessControlAllowOrigin.create(HttpOriginRange.ALL))
       .addHeader(AccessControlAllowHeaders.create("Access-Control-Allow-Origin", "Access-Control-Allow-Method"))
       .addHeader(AccessControlAllowMethods.create(HttpMethods.GET, HttpMethods.POST, HttpMethods.PUT, HttpMethods.OPTIONS, HttpMethods.DELETE))
-      .withEntity(HttpEntities.createCloseDelimited(contentType, new PublisherSource(KafkaConsumer.get(groupId, topic))));
+      .withEntity(HttpEntities.createCloseDelimited(contentType, new PublisherSource(KafkaPublisher.get(groupId, topic))));
 
     return ctx.complete(response);
   }

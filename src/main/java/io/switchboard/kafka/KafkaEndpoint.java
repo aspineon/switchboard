@@ -4,9 +4,7 @@ import akka.actor.ActorSystem;
 import akka.http.model.japi.HttpEntity;
 import akka.http.server.japi.*;
 import akka.stream.FlowMaterializer;
-import akka.stream.scaladsl.Sink;
 import akka.stream.scaladsl.SubscriberSink;
-import io.switchboard.kafka.KafkaProducer;
 
 /**
  *
@@ -26,7 +24,7 @@ public class KafkaEndpoint extends HttpApp {
     return new KafkaEndpoint(actorSystem);
   }
 
-  private KafkaProducer producer = new KafkaProducer();
+  private KafkaSubscriber producer = new KafkaSubscriber();
 
   @Override
   public Route createRoute() {

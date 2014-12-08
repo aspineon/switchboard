@@ -2,7 +2,6 @@ package io.switchboard.kafka;
 
 import kafka.consumer.Consumer;
 import kafka.consumer.ConsumerConfig;
-import kafka.consumer.ConsumerIterator;
 import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
 import org.reactivestreams.Publisher;
@@ -18,16 +17,16 @@ import java.util.Properties;
  *
  * Created by Christoph Grotz on 06.12.14.
  */
-public class KafkaConsumer implements  Publisher {
+public class KafkaPublisher implements  Publisher {
 
   public static Publisher get(String groupId, String topic) {
-    return new KafkaConsumer(groupId, topic);
+    return new KafkaPublisher(groupId, topic);
   }
 
   private final String topic;
   private final ConsumerConnector consumer;
 
-  public KafkaConsumer(String groupId, String topic) {
+  public KafkaPublisher(String groupId, String topic) {
     Properties props = new Properties();
     props.put("zookeeper.connect", "127.0.0.1:2181");
     props.put("group.id", groupId);
