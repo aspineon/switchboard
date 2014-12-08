@@ -13,14 +13,20 @@ import akka.stream.scaladsl.PublisherSource;
 import akka.stream.scaladsl.SubscriberSink;
 import akka.util.ByteString;
 import akka.util.ByteString$;
+import com.google.common.collect.Lists;
 import com.google.common.net.HttpHeaders;
 import io.switchboard.kafka.KafkaConsumer;
 import io.switchboard.kafka.KafkaEndpoint;
+
+import java.util.HashMap;
 
 /**
  * Created by Christoph Grotz on 07.12.14.
  */
 public class BasicApi extends HttpApp {
+
+
+
 
   private final ActorSystem actorSystem;
 
@@ -42,7 +48,7 @@ public class BasicApi extends HttpApp {
       ).route(
         get(
           handleWith(
-            new ServerSendEvent()
+            ServerSendEvent.create("group3","switchboard")
           )
         ),
         post(

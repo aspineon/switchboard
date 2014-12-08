@@ -20,17 +20,17 @@ import java.util.Properties;
  */
 public class KafkaConsumer implements  Publisher {
 
-  public static Publisher get(String topic) {
-    return new KafkaConsumer(topic);
+  public static Publisher get(String groupId, String topic) {
+    return new KafkaConsumer(groupId, topic);
   }
 
   private final String topic;
   private final ConsumerConnector consumer;
 
-  public KafkaConsumer(String topic) {
+  public KafkaConsumer(String groupId, String topic) {
     Properties props = new Properties();
     props.put("zookeeper.connect", "127.0.0.1:2181");
-    props.put("group.id", "group1");
+    props.put("group.id", groupId);
     props.put("zookeeper.session.timeout.ms", "400");
     props.put("zookeeper.sync.time.ms", "200");
     props.put("auto.commit.interval.ms", "1000");
@@ -41,6 +41,7 @@ public class KafkaConsumer implements  Publisher {
 
   @Override
   public void subscribe(Subscriber subscriber) {
+    System.out.println("subscribe "+subscriber);
     Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
     topicCountMap.put(topic, 1);
     Map<String, List<KafkaStream<byte[], byte[]>>> consumerMap = consumer.createMessageStreams(topicCountMap);
