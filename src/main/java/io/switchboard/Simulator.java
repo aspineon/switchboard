@@ -8,7 +8,7 @@ import java.net.URL;
 /**
  * Created by Christoph Grotz on 07.12.14.
  */
-public class TekSimulator {
+public class Simulator {
 
   public static void main(String ... args) throws IOException {
     while( true )
