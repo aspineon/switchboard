@@ -3,6 +3,7 @@ package io.switchboard.kafka;
 import kafka.consumer.Consumer;
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.KafkaStream;
+import kafka.consumer.TopicFilter;
 import kafka.javaapi.consumer.ConsumerConnector;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -35,6 +36,7 @@ public class KafkaPublisher implements  Publisher {
     props.put("auto.commit.interval.ms", "1000");
 
     this.consumer = Consumer.createJavaConsumerConnector(new ConsumerConfig(props));
+
     this.topic = topic;
   }
 

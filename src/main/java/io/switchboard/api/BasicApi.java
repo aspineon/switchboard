@@ -64,7 +64,9 @@ public class BasicApi extends SwitchboardHttpApp {
             (ctx, stream) -> {
               HttpEntity entity = ctx.request().entity();
 
-              entity.getDataBytes().to(new SubscriberSink(producer)).run(FlowMaterializer.create(actorSystem));
+              entity.getDataBytes()
+                      .to(new SubscriberSink(producer))
+                      .run(FlowMaterializer.create(actorSystem));
 
               return ctx.completeWithStatus(200);
             }

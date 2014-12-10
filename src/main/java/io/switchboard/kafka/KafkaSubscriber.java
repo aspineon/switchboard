@@ -37,7 +37,7 @@ public class KafkaSubscriber implements Subscriber<ByteString> {
 
   @Override
   public void onSubscribe(Subscription s) {
-
+    s.request(1);
   }
 
   @Override
