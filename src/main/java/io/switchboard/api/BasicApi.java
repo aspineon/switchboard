@@ -33,31 +33,28 @@ public class BasicApi extends SwitchboardHttpApp {
   @Override
   public Route createRoute() {
     return route(
-      options(
-              handleWith(ctx -> {
-                akka.http.model.japi.HttpResponse response = HttpResponse.create()
-                        .addHeader(AccessControlAllowOrigin.create(HttpOriginRange.ALL))
-                        .addHeader(AccessControlAllowHeaders.create("Access-Control-Allow-Origin", "Access-Control-Allow-Method"))
-                        .addHeader(AccessControlAllowMethods.create(HttpMethods.GET, HttpMethods.POST, HttpMethods.PUT, HttpMethods.OPTIONS, HttpMethods.DELETE));
+            options(
+                    handleWith(ctx -> {
+                      akka.http.model.japi.HttpResponse response = HttpResponse.create()
+                              .addHeader(AccessControlAllowOrigin.create(HttpOriginRange.ALL))
+                              .addHeader(AccessControlAllowHeaders.create("Access-Control-Allow-Origin", "Access-Control-Allow-Method"))
+                              .addHeader(AccessControlAllowMethods.create(HttpMethods.GET, HttpMethods.POST, HttpMethods.PUT, HttpMethods.OPTIONS, HttpMethods.DELETE));
 
-                return ctx.complete(response);
-              })
-      ),
-      path(
-        "api",
-        "v1",
-        "streams"
-      ).route(
-        get(
-          /*handleWith(
-                  ServerSendEvent.create("group3", "switchboard")
-          )*/
-          completeWithFuture(streamManagement, StreamManagement.retrieve(), 1000)
-        ),
-        post(
-          KafkaEndpoint.apply(actorSystem).createRoute()
-        )
-      )
+                      return ctx.complete(response);
+                    })
+            ),
+            path(
+                    "api",
+                    "v1",
+                    "streams"
+            ).route(
+                    get(
+                      completeWithActorCall(streamManagement, StreamManagement.retrieve(), 1000)
+                    ),
+                    post(
+                            KafkaEndpoint.apply(actorSystem).createRoute()
+                    )
+            )
     );
   }
 

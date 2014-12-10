@@ -2,6 +2,7 @@ package io.switchboard.streams;
 
 import akka.actor.UntypedActor;
 import akka.http.server.japi.RouteResult;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +17,7 @@ public class StreamManagement extends UntypedActor {
   public void onReceive(Object message) throws Exception {
     if(message instanceof RetrieveStreams) {
       LOG.info("retrieve streams {}",message);
-      getSender().tell(new Streams("Test"), getSelf());
+      getSender().tell(Lists.newArrayList(new Streams("Test"),new Streams("Test2"),new Streams("Test3")), getSelf());
     }
   }
 
