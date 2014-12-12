@@ -23,7 +23,8 @@ public class BasicApi extends SwitchboardHttpApp {
 
   private final ActorSystem actorSystem;
   private final ActorRef streamManagement;
-  private final PathMatcher<String> streamId = PathMatchers.segment();
+
+  private final PathMatcher<String> id = PathMatchers.segment();
   private KafkaSubscriber producer = new KafkaSubscriber();
 
   private BasicApi(ActorSystem actorSystem) {
@@ -56,22 +57,40 @@ public class BasicApi extends SwitchboardHttpApp {
         )
       ),
       path(
-          "api","v1","streams",streamId
+          "api","v1","streams", id
       ).route(
-        post(
-          handleWith(
-            streamId,
-            (ctx, stream) -> {
-              HttpEntity entity = ctx.request().entity();
+              post(
+                      handleWith(
+                              id,
+                              (ctx, stream) -> {
+                                HttpEntity entity = ctx.request().entity();
 
-              entity.getDataBytes()
-                      .to(new SubscriberSink(producer))
-                      .run(FlowMaterializer.create(actorSystem));
+                                entity.getDataBytes()
+                                        .to(new SubscriberSink(producer))
+                                        .run(FlowMaterializer.create(actorSystem));
 
-              return ctx.completeWithStatus(200);
-            }
-          )
-        )
+                                return ctx.completeWithStatus(200);
+                              }
+                      )
+              )
+      ),
+      path(
+              "api","v1","events", id
+      ).route(
+              post(
+                      handleWith(
+                              id,
+                              (ctx, stream) -> {
+                                HttpEntity entity = ctx.request().entity();
+
+                                entity.getDataBytes()
+                                        .to(new SubscriberSink(producer))
+                                        .run(FlowMaterializer.create(actorSystem));
+
+                                return ctx.completeWithStatus(200);
+                              }
+                      )
+              )
       )
     );
   }

@@ -47,6 +47,11 @@
 	      <version>${akka.http.version}</version>
       </dependency>
       <dependency>
+        <groupId>com.typesafe.akka</groupId>
+        <artifactId>akka-persistence-experimental_2.10</artifactId>
+        <version>2.3.7</version>
+      </dependency>
+      <dependency>
 	      <groupId>org.apache.kafka</groupId>
 	      <artifactId>kafka_2.10</artifactId>
 	      <version>${kafka.version}</version>

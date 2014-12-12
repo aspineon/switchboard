@@ -12,7 +12,7 @@ public class Simulator {
 
   public static void main(String ... args) throws IOException {
     while( true )
-      excutePost("http://localhost:8080/api/v1/streams/switchboard", "{\"test\":\"Hallo Welt\", \"time\":"+System.currentTimeMillis()+"}");
+      excutePost("http://localhost:8080/api/v1/events/switchboard", "{\"test\":\"Hallo Welt\", \"time\":"+System.currentTimeMillis()+"}");
   }
 
   public static String excutePost(String targetURL, String body)
