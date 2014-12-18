@@ -3,11 +3,14 @@ package io.switchboard.processing;
 import akka.stream.javadsl.japi.Predicate;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.switchboard.grammar.SwitchboardParser;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.tree.*;
 import com.google.common.base.Strings;
 
+import java.util.Arrays;
+
 /**
+ *
+ *
+ *
  * Created by Christoph Grotz on 17.12.14.
  */
 public class ExpressionPredicate implements Predicate<ObjectNode> {
@@ -62,24 +65,12 @@ public class ExpressionPredicate implements Predicate<ObjectNode> {
       SwitchboardParser.PredicateContext
         ctx = (SwitchboardParser.PredicateContext)expression;
       if( ctx.EQUALS() != null ) {
-        String fieldName = Strings.nullToEmpty(ctx.text(0).getText());
-        if(param.hasNonNull(fieldName)) {
-          String fieldValue = param.get(fieldName).asText("");
-          return fieldValue.equals(Strings.nullToEmpty(ctx.text(1).getText()));
-        }
-        else {
-          return false;
-        }
+        String fieldValue = extractFieldValue(param, ctx);
+        return Strings.nullToEmpty(ctx.text(1).getText()).equals(fieldValue);
       }
       else if( ctx.NOTEQUALS() != null ) {
-        String fieldName = Strings.nullToEmpty(ctx.text(0).getText());
-        if(param.hasNonNull(fieldName)) {
-          String fieldValue = param.get(fieldName).asText("");
-          return !fieldValue.equals(Strings.nullToEmpty(ctx.text(1).getText()));
-        }
-        else {
-          return false;
-        }
+        String fieldValue = extractFieldValue(param, ctx);
+        return !Strings.nullToEmpty(ctx.text(1).getText()).equals(fieldValue);
       }
       // TODO Numeric Operations
       /*else if( ctx.GREATERTHAN() != null ) {
@@ -100,6 +91,23 @@ public class ExpressionPredicate implements Predicate<ObjectNode> {
     }
     else {
       throw new IllegalArgumentException();
+    }
+  }
+
+  private String extractFieldValue(ObjectNode param, SwitchboardParser.PredicateContext ctx) {
+    ObjectNode node = param;
+    String fieldName = Strings.nullToEmpty(ctx.text(0).getText());
+    String[] names = fieldName.split("\\.");
+    if(names.length > 1) {
+      for (String element : Arrays.copyOf(names, names.length-1)) {
+        node = (ObjectNode) node.get(element);
+      }
+    }
+    if(node.hasNonNull(names[names.length-1])) {
+      return node.get(names[names.length - 1]).asText("");
+    }
+    else {
+      return null;
     }
   }
 
