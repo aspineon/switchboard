@@ -1,10 +1,18 @@
 package io.switchboard;
 
 import akka.actor.ActorSystem;
-import io.switchboard.api.BasicApi;
-import io.switchboard.grammar.SwitchboardLexer;
-import io.switchboard.grammar.SwitchboardParser;
-import org.antlr.v4.runtime.*;
+import akka.stream.FlowMaterializer;
+import akka.stream.javadsl.Sink;
+import akka.stream.javadsl.Source;
+import akka.stream.javadsl.japi.Procedure;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Lists;
+import io.switchboard.processing.Switchboard;
+import scala.concurrent.duration.FiniteDuration;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Main class for switchboard
@@ -14,22 +22,27 @@ import org.antlr.v4.runtime.*;
 public class Boot{
 
   public static void main(String ... args) throws Exception {
+    ObjectMapper mapper = new ObjectMapper();
     ActorSystem actorSystem = ActorSystem.create();
-    BasicApi.apply(actorSystem).bindRoute("0.0.0.0", 8080);
+    //BasicApi.apply(actorSystem).bindRoute("0.0.0.0", 8080);
 
-    //System.out.println(parse("Abishek AND (country=India OR city=NY) LOGIN 404 | show name city").expr().getChild(0).getChild(0));
-  }
+    Source<ObjectNode> source = Source.from( Lists.newArrayList(
+      mapper.createObjectNode().put("type", "request").put("country", "India"),
+      mapper.createObjectNode().put("type", "request").put("country", "Cananda"),
+      mapper.createObjectNode().put("type", "request").put("country", "Pakistan"),
+      mapper.createObjectNode().put("type", "request").put("country", "US").put("city", "NY"),
+      mapper.createObjectNode().put("type", "request").put("country", "US").put("city", "LA")
+    ));
+    //Source<ObjectNode> source = Source.from(new FiniteDuration(1, TimeUnit.SECONDS),new FiniteDuration(1, TimeUnit.SECONDS), () -> node);
+    Sink<ObjectNode> sink = Sink.foreach(param -> System.out.println(param));
 
-  private static SwitchboardParser.StatementContext parse(String input) {
-    SwitchboardLexer l = new SwitchboardLexer(new ANTLRInputStream(input));
-    SwitchboardParser p = new SwitchboardParser(new CommonTokenStream(l));
-    p.addErrorListener(new BaseErrorListener() {
-      @Override
-      public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
-        throw new IllegalStateException("failed to parse at line " + line + " due to " + msg, e);
-      }
-    });
-    return p.statement();
+    /*Switchboard
+      .expression("type=request AND (country=India OR city=NY)")
+      .runWith(FlowMaterializer.create(actorSystem), source, sink);*/
+
+    Switchboard
+      .expression("type=request AND country=India OR city=NY")
+      .runWith(FlowMaterializer.create(actorSystem), source, sink);
   }
 
 }

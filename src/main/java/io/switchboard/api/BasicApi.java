@@ -57,25 +57,7 @@ public class BasicApi extends SwitchboardHttpApp {
         )
       ),
       path(
-          "api","v1","streams", id
-      ).route(
-              post(
-                      handleWith(
-                              id,
-                              (ctx, stream) -> {
-                                HttpEntity entity = ctx.request().entity();
-
-                                entity.getDataBytes()
-                                        .to(new SubscriberSink(producer))
-                                        .run(FlowMaterializer.create(actorSystem));
-
-                                return ctx.completeWithStatus(200);
-                              }
-                      )
-              )
-      ),
-      path(
-              "api","v1","events", id
+              "api","v1","streams", id
       ).route(
               post(
                       handleWith(

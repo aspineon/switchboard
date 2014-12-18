@@ -1,24 +1,21 @@
 grammar Switchboard;
 
-statement : expr command* ;
+//statement : expression command* ;
+statement : expression;
 
-expr : expr ('AND' | 'OR' | 'NOT') expr # expopexp
- | expr expr # expexp
- | predicate # predicexpr
- | text # textexpr
- | '(' expr ')' # exprgroup
+expression : expression (AND | OR | NOT) expression # logicalAssociatedExpression
+ | predicate # expressionPredicate
+ | '(' expression ')' # groupedExpression
  ;
 
-predicate : text ('=' | '!=' | '>=' | '<=' | '>' | '<') text ;
+predicate : text (EQUALS | NOTEQUALS | GREQUALS | LSEQUALS | GREATERTHAN | LESSTHAN) text ;
 
+/*
 command : '| show' text* # showcmd
  | '| show' text (',' text)* # showcsv
- ;
+ ;*/
 
-text : NUMBER # numbertxt
- | QTEXT # quotedtxt
- | UQTEXT # unquotedtxt
- ;
+text : NUMBER # numberText | QTEXT # quotedText | UQTEXT # unquotedText ;
 
 AND : 'AND' ;
 OR : 'OR' ;
@@ -30,10 +27,7 @@ LSEQUALS : '<=' ;
 GREATERTHAN : '>' ;
 LESSTHAN : '<' ;
 
-NUMBER : DIGIT+
- | DIGIT+ '.' DIGIT+
- | '.' DIGIT+
- ;
+NUMBER : DIGIT+ | DIGIT+ '.' DIGIT+ | '.' DIGIT+;
 QTEXT : '"' (ESC|.)*? '"' ;
 UQTEXT : ~[ ()=,<>!\r\n]+ ;
 

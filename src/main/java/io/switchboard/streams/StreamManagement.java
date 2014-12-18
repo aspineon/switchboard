@@ -24,13 +24,14 @@ public class StreamManagement extends AbstractActor {
   private ZkClient zkClient = new ZkClient("127.0.0.1:2181");
 
   public StreamManagement() {
+
     receive(ReceiveBuilder
             .match(RetrieveStreams.class, message -> {
-              log.info("retrieve streams {}",message);
+              log.info("retrieve streams {}", message);
               List<Stream> streams = JavaConverters.asJavaListConverter(ZkUtils.getAllTopics(zkClient))
                       .asJava().stream().map(str -> new Stream(str))
                       .collect(Collectors.toList());
-              sender().tell(streams, self());
+              sender().tell(ZkUtils.getAllPartitions(zkClient).toList(), self());
             }).build());
   }
 
