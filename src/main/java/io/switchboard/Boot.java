@@ -52,7 +52,6 @@ public class Boot{
       "{\"type\":\"request\",\"country\":\"US\",\"city\":\"LA\",\"value\": { \"numeric\": 1}}"
     ))
       //.map( param -> mapper.readValue(param, ObjectNode.class))
-      .map(param -> ByteString$.MODULE$.apply(param.toString(), "UTF-8"))
       .runWith(Sink.create(new KafkaSubscriber("switchboard")), FlowMaterializer.create(actorSystem));
   }
 

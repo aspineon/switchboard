@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Example Kafka Consumer
@@ -38,7 +40,14 @@ public class KafkaPublisher implements  Publisher {
     this.consumer = Consumer.createJavaConsumerConnector(new ConsumerConfig(props));
 
     this.topic = topic;
+
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+      consumer.shutdown();
+      executor.shutdown();
+    }));
   }
+
+  private ExecutorService executor = Executors.newCachedThreadPool();
 
   @Override
   public void subscribe(Subscriber subscriber) {
@@ -48,7 +57,8 @@ public class KafkaPublisher implements  Publisher {
     Map<String, List<KafkaStream<byte[], byte[]>>> consumerMap = consumer.createMessageStreams(topicCountMap);
     KafkaStream<byte[], byte[]> stream =  consumerMap.get(topic).get(0);
 
-    KafkaSubscription subscription = new KafkaSubscription(subscriber, stream);
+    KafkaSubscription subscription = new KafkaSubscription(this, subscriber, stream);
+    executor.submit(subscription);
     subscriber.onSubscribe(subscription);
   }
 }

@@ -57,8 +57,8 @@ public class Switchboard {
 
   public Source<ObjectNode> runWithKafka(String groupId) {
     ObjectMapper mapper = new ObjectMapper();
-    Source<ByteString> source = Source.from(new KafkaPublisher(groupId, statement.flow().text().getText()));
-    return run(source.map( byteString -> byteString.utf8String()).map( string -> mapper.readValue(string, ObjectNode.class)));
+    Source<String> source = Source.from(new KafkaPublisher(groupId, statement.flow().text().getText()));
+    return run(source.map( string -> mapper.readValue(string, ObjectNode.class)));
   }
 
 }

@@ -18,7 +18,7 @@ import java.util.Properties;
  *
  * Created by Christoph Grotz on 06.12.14.
  */
-public class KafkaSubscriber implements Subscriber<ByteString> {
+public class KafkaSubscriber implements Subscriber<String> {
 
   private final Producer<String, String> producer;
   private String topic;
@@ -32,6 +32,8 @@ public class KafkaSubscriber implements Subscriber<ByteString> {
 
     this.producer = new Producer<>(new ProducerConfig(props));
     this.topic = topic;
+
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> producer.close()));
   }
 
   public void send(String topic, String message) {
@@ -45,14 +47,14 @@ public class KafkaSubscriber implements Subscriber<ByteString> {
   }
 
   @Override
-  public void onNext(ByteString byteString) {
-    send(topic, byteString.utf8String());
+  public void onNext(String string) {
+    send(topic, string);
     subscription.request(4);
   }
 
   @Override
   public void onError(Throwable t) {
-
+    t.printStackTrace();
   }
 
   @Override
