@@ -1,9 +1,10 @@
 grammar Switchboard;
 
 //statement : expression command* ;
-statement : flow expression;
+statement : input+ expression ('|' expression)* output+ ;
 
-flow: 'from' text '|';
+input: 'FROM' text '|';
+output: '|' 'TO' text;
 
 expression : expression (AND | OR | NOT) expression # logicalAssociatedExpression
  | predicate # expressionPredicate

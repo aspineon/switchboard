@@ -39,10 +39,9 @@ public class Boot{
       .runWith(FlowMaterializer.create(actorSystem), source, sink);*/
 
     Switchboard
-      .expression("from switchboard | type=request AND country=India OR city=NY AND value.numeric = 1")
+      .expression("FROM switchboard | type=request AND country=India OR city=NY AND value.numeric = 1 | TO topic2")
       .runWithKafka(FlowMaterializer.create(actorSystem),
-        "adhoc-group-"+System.currentTimeMillis(),
-        Sink.foreach(param -> System.out.println(param)));
+        "adhoc-group-"+System.currentTimeMillis());
 
     Source.from(Lists.newArrayList(
       "{\"type\":\"request\",\"country\":\"India\",\"value\": { \"numeric\": 1}}",

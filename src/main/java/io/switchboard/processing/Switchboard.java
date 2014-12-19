@@ -11,8 +11,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.switchboard.grammar.SwitchboardLexer;
 import io.switchboard.grammar.SwitchboardParser;
 import io.switchboard.kafka.KafkaPublisher;
+import io.switchboard.kafka.KafkaSubscriber;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.reactivestreams.Publisher;
 
 /**
  * Created by Christoph Grotz on 17.12.14.
@@ -45,20 +47,22 @@ public class Switchboard {
     return runWithKafka(groupId).to(sink).run(flowMaterializer);
   }
 
+  public void runWithKafka(FlowMaterializer flowMaterializer, String groupId) {
+    KafkaSubscriber subscriber = new KafkaSubscriber(statement.output(0).text().getText());
+    runWithKafka(groupId).map(obj -> obj.toString()).runWith(Sink.create(subscriber), flowMaterializer);
+  }
+
   public Source<ObjectNode> run(final Source<ObjectNode> inputSource) {
     Source<ObjectNode> source = inputSource;
-
-    source = source.filter(new ExpressionPredicate(statement.expression()));
-    /*for(final SwitchboardParser.CommandContext command : statement.command()) {
-      source = source.filter(new CommandPredicate(command));
-    }*/
+    for(SwitchboardParser.ExpressionContext expressionPredicate : statement.expression()) {
+      source = source.filter(new ExpressionPredicate(expressionPredicate));
+    }
     return source;
   }
 
   public Source<ObjectNode> runWithKafka(String groupId) {
     ObjectMapper mapper = new ObjectMapper();
-    Source<String> source = Source.from(new KafkaPublisher(groupId, statement.flow().text().getText()));
-    return run(source.map( string -> mapper.readValue(string, ObjectNode.class)));
+    Source<String> source = Source.from(new KafkaPublisher(groupId, statement.input(0).text().getText()));
+    return run(source.map(string -> mapper.readValue(string, ObjectNode.class)));
   }
-
 }

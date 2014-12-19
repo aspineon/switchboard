@@ -20,7 +20,7 @@ import java.util.concurrent.Executors;
  *
  * Created by Christoph Grotz on 06.12.14.
  */
-public class KafkaPublisher implements  Publisher {
+public class KafkaPublisher implements  Publisher<String> {
 
   public static Publisher get(String groupId, String topic) {
     return new KafkaPublisher(groupId, topic);
