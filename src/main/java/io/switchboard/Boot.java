@@ -7,10 +7,12 @@ import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import akka.stream.javadsl.japi.Function;
 import akka.stream.javadsl.japi.Procedure;
+import akka.util.ByteString$;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
+import io.switchboard.kafka.KafkaSubscriber;
 import io.switchboard.processing.Switchboard;
 import scala.concurrent.duration.FiniteDuration;
 
@@ -29,29 +31,29 @@ public class Boot{
     ActorSystem actorSystem = ActorSystem.create();
     //BasicApi.apply(actorSystem).bindRoute("0.0.0.0", 8080);
 
-    Source<ObjectNode> source = Source.from(Lists.newArrayList(
-      "{\"type\":\"request\",\"country\":\"India\",\"value\": { \"numeric\": \"1\"}}",
-      "{\"type\":\"request\",\"country\":\"Cananda\",\"value\": { \"numeric\": \"1\"}}",
-      "{\"type\":\"request\",\"country\":\"Pakistan\",\"value\": { \"numeric\": \"1\"}}",
-      "{\"type\":\"request\",\"country\":\"US\",\"city\":\"NY\",\"value\": { \"numeric\": \"1\"}}",
-      "{\"type\":\"request\",\"country\":\"US\",\"city\":\"LA\",\"value\": { \"numeric\": \"1\"}}"
-    )).map( param -> mapper.readValue(param, ObjectNode.class));
-/*
-    mapper.createObjectNode().put("type", "request").put("country", "India"),
-      mapper.createObjectNode().put("type", "request").put("country", "Cananda"),
-      mapper.createObjectNode().put("type", "request").put("country", "Pakistan"),
-      mapper.createObjectNode().put("type", "request").put("country", "US").put("city", "NY"),
-      mapper.createObjectNode().put("type", "request").put("country", "US").put("city", "LA")*/
+
     //Source<ObjectNode> source = Source.from(new FiniteDuration(1, TimeUnit.SECONDS),new FiniteDuration(1, TimeUnit.SECONDS), () -> node);
-    Sink<ObjectNode> sink = Sink.foreach(param -> System.out.println(param));
 
     /*Switchboard
-      .expression("type=request AND (country=India OR city=NY)")
+      .expression("switchboard | type=request AND (country=India OR city=NY)")
       .runWith(FlowMaterializer.create(actorSystem), source, sink);*/
 
     Switchboard
-      .expression("type=request AND country=India OR city=NY AND value.numeric = 1")
-      .runWith(FlowMaterializer.create(actorSystem), source, sink);
+      .expression("from switchboard | type=request AND country=India OR city=NY AND value.numeric = 1")
+      .runWithKafka(FlowMaterializer.create(actorSystem),
+        "adhoc-group-"+System.currentTimeMillis(),
+        Sink.foreach(param -> System.out.println(param)));
+
+    Source.from(Lists.newArrayList(
+      "{\"type\":\"request\",\"country\":\"India\",\"value\": { \"numeric\": 1}}",
+      "{\"type\":\"request\",\"country\":\"Cananda\",\"value\": { \"numeric\": 1}}",
+      "{\"type\":\"request\",\"country\":\"Pakistan\",\"value\": { \"numeric\": 1}}",
+      "{\"type\":\"request\",\"country\":\"US\",\"city\":\"NY\",\"value\": { \"numeric\": 1}}",
+      "{\"type\":\"request\",\"country\":\"US\",\"city\":\"LA\",\"value\": { \"numeric\": 1}}"
+    ))
+      //.map( param -> mapper.readValue(param, ObjectNode.class))
+      .map(param -> ByteString$.MODULE$.apply(param.toString(), "UTF-8"))
+      .runWith(Sink.create(new KafkaSubscriber("switchboard")), FlowMaterializer.create(actorSystem));
   }
 
 }

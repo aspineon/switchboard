@@ -21,14 +21,17 @@ import java.util.Properties;
 public class KafkaSubscriber implements Subscriber<ByteString> {
 
   private final Producer<String, String> producer;
+  private String topic;
+  private Subscription subscription;
 
-  public KafkaSubscriber() {
+  public KafkaSubscriber(String topic) {
     Properties props = new Properties();
 
     props.put("metadata.broker.list", "localhost:9092");
     props.put("serializer.class", "kafka.serializer.StringEncoder");
 
     this.producer = new Producer<>(new ProducerConfig(props));
+    this.topic = topic;
   }
 
   public void send(String topic, String message) {
@@ -37,12 +40,14 @@ public class KafkaSubscriber implements Subscriber<ByteString> {
 
   @Override
   public void onSubscribe(Subscription s) {
-    s.request(1);
+    this.subscription = s;
+    s.request(4);
   }
 
   @Override
   public void onNext(ByteString byteString) {
-    send("switchboard", byteString.utf8String());
+    send(topic, byteString.utf8String());
+    subscription.request(4);
   }
 
   @Override

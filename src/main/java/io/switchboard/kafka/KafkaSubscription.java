@@ -31,9 +31,9 @@ public class KafkaSubscription implements Subscription {
           @Override
           public Object apply(MessageAndMetadata<byte[], byte[]> x, boolean isCheck) throws Exception {
             if(requested.get() > 0) {
-              String message = "event: "+x.topic()+"\r\ndata: "+new String(x.message());
-              System.out.println(message);
-              subscriber.onNext(ByteString$.MODULE$.apply(message));
+              //String message = "event: "+x.topic()+"\r\ndata: "+new String(x.message());
+              //System.out.println(message);
+              subscriber.onNext(ByteString$.MODULE$.apply(x.message()));
               requested.decrementAndGet();
             }
             return null;

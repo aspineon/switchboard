@@ -25,7 +25,7 @@ public class BasicApi extends SwitchboardHttpApp {
   private final ActorRef streamManagement;
 
   private final PathMatcher<String> id = PathMatchers.segment();
-  private KafkaSubscriber producer = new KafkaSubscriber();
+  private KafkaSubscriber producer = new KafkaSubscriber("switchboard");
 
   private BasicApi(ActorSystem actorSystem) {
     this.actorSystem = actorSystem;

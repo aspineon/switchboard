@@ -4,9 +4,13 @@ import akka.stream.FlowMaterializer;
 import akka.stream.javadsl.MaterializedMap;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
+import akka.stream.scaladsl.SubscriberSource;
+import akka.util.ByteString;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.switchboard.grammar.SwitchboardLexer;
 import io.switchboard.grammar.SwitchboardParser;
+import io.switchboard.kafka.KafkaPublisher;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 
@@ -34,11 +38,27 @@ public class Switchboard {
   }
 
   public MaterializedMap runWith( final FlowMaterializer flowMaterializer, final Source<ObjectNode> inputSource, final Sink<ObjectNode> sink ) {
+    return run(inputSource).to(sink).run(flowMaterializer);
+  }
+
+  public MaterializedMap runWithKafka( final FlowMaterializer flowMaterializer, final String groupId, final Sink<ObjectNode> sink ) {
+    return runWithKafka(groupId).to(sink).run(flowMaterializer);
+  }
+
+  public Source<ObjectNode> run(final Source<ObjectNode> inputSource) {
     Source<ObjectNode> source = inputSource;
+
     source = source.filter(new ExpressionPredicate(statement.expression()));
     /*for(final SwitchboardParser.CommandContext command : statement.command()) {
       source = source.filter(new CommandPredicate(command));
     }*/
-    return source.to(sink).run(flowMaterializer);
+    return source;
   }
+
+  public Source<ObjectNode> runWithKafka(String groupId) {
+    ObjectMapper mapper = new ObjectMapper();
+    Source<ByteString> source = Source.from(new KafkaPublisher(groupId, statement.flow().text().getText()));
+    return run(source.map( byteString -> byteString.utf8String()).map( string -> mapper.readValue(string, ObjectNode.class)));
+  }
+
 }
