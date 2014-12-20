@@ -1,13 +1,13 @@
 package io.switchboard.boot;
 
 import akka.actor.ActorSystem;
-import akka.stream.FlowMaterializer;
 import io.switchboard.api.Api;
-import io.switchboard.processing.Switchboard;
 import joptsimple.internal.Strings;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Optional;
 
 /**
  * Main class for switchboard
@@ -26,23 +26,14 @@ public class Boot {
       PosixParser parser = new PosixParser();
       CommandLine cmd = parser.parse(options, args);
 
-      String host;
-      if (cmd.hasOption("i")) {
-        host = cmd.getOptionValue("i");
-      } else if (!Strings.isNullOrEmpty(System.getenv("SWITCHBOARD_HOST_INTERFACE"))) {
-        host = System.getenv("SWITCHBOARD_HOST_INTERFACE");
-      } else {
-        host = "0.0.0.0";
-      }
-
-      String portStr;
-      if (cmd.hasOption("p")) {
-        portStr = cmd.getOptionValue("p");
-      } else if (!Strings.isNullOrEmpty(System.getenv("SWITCHBOARD_HOST_PORT"))) {
-        portStr = System.getenv("SWITCHBOARD_HOST_PORT");
-      } else {
-        portStr = "8080";
-      }
+      String host =             getPropertyValue(cmd, "z", "SWITCHBOARD_HOST_INTERFACE",       "0.0.0.0");
+      Config.get().put(Config.SWITCHBOARD_HOST_INTERFACE, host);
+      String portStr =          getPropertyValue(cmd, "p", "SWITCHBOARD_HOST_PORT",            "8080");
+      Config.get().put(Config.SWITCHBOARD_HOST_PORT, portStr);
+      String brokerList =       getPropertyValue(cmd, "b", "SWITCHBOARD_METADATA_BROKER_LIST", "localhost:9092");
+      Config.get().put(Config.SWITCHBOARD_METADATA_BROKER_LIST, brokerList);
+      String zookeeperConnect = getPropertyValue(cmd, "z", "SWITCHBOARD_ZOOKEEPER_CONNECT",    "127.0.0.1:2181");
+      Config.get().put(Config.SWITCHBOARD_ZOOKEEPER_CONNECT, zookeeperConnect);
 
       ActorSystem actorSystem = ActorSystem.create();
       api(actorSystem).bindRoute(host, Integer.parseInt(portStr));
@@ -65,6 +56,30 @@ public class Boot {
     catch(ParseException exp) {
       LOG.error("Error while parsing arguments", exp);
     }
+  }
+
+  private static Optional<String> getPropertyValue(CommandLine cmd, String opt, String env) {
+    Optional<String> property;
+    if (cmd.hasOption(opt)) {
+      property = Optional.of(cmd.getOptionValue(opt));
+    } else if (!Strings.isNullOrEmpty(System.getenv(env))) {
+      property = Optional.of(System.getenv(env));
+    } else {
+      property = Optional.empty();
+    }
+    return property;
+  }
+
+  private static String getPropertyValue(CommandLine cmd, String opt, String env, String def) {
+    String property;
+    if (cmd.hasOption(opt)) {
+      property = cmd.getOptionValue(opt);
+    } else if (!Strings.isNullOrEmpty(System.getenv(env))) {
+      property = System.getenv(env);
+    } else {
+      property = def;
+    }
+    return property;
   }
 
   private static Api api(ActorSystem actorSystem) {

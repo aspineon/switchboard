@@ -1,5 +1,6 @@
 package io.switchboard.kafka;
 
+import io.switchboard.boot.Config;
 import kafka.consumer.Consumer;
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.KafkaStream;
@@ -31,7 +32,7 @@ public class KafkaPublisher implements  Publisher<String> {
 
   public KafkaPublisher(String groupId, String topic) {
     Properties props = new Properties();
-    props.put("zookeeper.connect", "127.0.0.1:2181");
+    props.put("zookeeper.connect", Config.get().get(Config.SWITCHBOARD_ZOOKEEPER_CONNECT));
     props.put("group.id", groupId);
     props.put("zookeeper.session.timeout.ms", "400");
     props.put("zookeeper.sync.time.ms", "200");

@@ -4,6 +4,7 @@ import akka.stream.FlowMaterializer;
 import akka.stream.scaladsl.Sink;
 import akka.stream.scaladsl.Source;
 import akka.util.ByteString;
+import io.switchboard.boot.Config;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
@@ -27,7 +28,7 @@ public class KafkaSubscriber implements Subscriber<String> {
   public KafkaSubscriber(String topic) {
     Properties props = new Properties();
 
-    props.put("metadata.broker.list", "localhost:9092");
+    props.put("metadata.broker.list", Config.get().get(Config.SWITCHBOARD_METADATA_BROKER_LIST));
     props.put("serializer.class", "kafka.serializer.StringEncoder");
 
     this.producer = new Producer<>(new ProducerConfig(props));
