@@ -1,6 +1,5 @@
 grammar Switchboard;
 
-//statement : expression command* ;
 statement : input+ ('|' expression)* output+ ;
 
 input: 'FROM' text;
@@ -12,11 +11,6 @@ expression : expression (AND | OR | NOT) expression # logicalAssociatedExpressio
  ;
 
 predicate : text (EQUALS | NOTEQUALS | GREQUALS | LSEQUALS | GREATERTHAN | LESSTHAN) text ;
-
-/*
-command : '| show' text* # showcmd
- | '| show' text (',' text)* # showcsv
- ;*/
 
 text : NUMBER # numberText | QTEXT # quotedText | UQTEXT # unquotedText ;
 
