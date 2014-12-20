@@ -1,12 +1,8 @@
-package io.switchboard;
+package io.switchboard.boot;
 
 import akka.actor.ActorSystem;
 import akka.stream.FlowMaterializer;
-import akka.stream.javadsl.Sink;
-import akka.stream.javadsl.Source;
-import com.google.common.collect.Lists;
-import io.switchboard.api.BasicApi;
-import io.switchboard.kafka.KafkaSubscriber;
+import io.switchboard.api.Api;
 import io.switchboard.processing.Switchboard;
 import joptsimple.internal.Strings;
 import org.apache.commons.cli.*;
@@ -49,11 +45,15 @@ public class Boot {
       }
 
       ActorSystem actorSystem = ActorSystem.create();
-      BasicApi.apply(actorSystem).bindRoute(host, Integer.parseInt(portStr));
+      api(actorSystem).bindRoute(host, Integer.parseInt(portStr));
+
+      Switchboard.expression("FROM switchboard | TO topic2")
+        .runWithKafka(FlowMaterializer.create(actorSystem),
+          "adhoc-group-" + System.currentTimeMillis());
 
       /*
       Switchboard
-        .expression("FROM switchboard | type=request AND country=India OR city=NY AND value.numeric = 1 | TO topic2")
+        .expression("FROM switchboard | type=request AND (country=India OR city=NY) AND value.numeric = 1 | TO topic2")
         .runWithKafka(FlowMaterializer.create(actorSystem),
           "adhoc-group-" + System.currentTimeMillis());
 
@@ -69,6 +69,10 @@ public class Boot {
     catch(ParseException exp) {
       LOG.error("Error while parsing arguments", exp);
     }
+  }
+
+  private static Api api(ActorSystem actorSystem) {
+    return Api.apply(actorSystem);
   }
 
 }

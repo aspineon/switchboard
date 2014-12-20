@@ -1,9 +1,9 @@
 grammar Switchboard;
 
 //statement : expression command* ;
-statement : input+ expression ('|' expression)* output+ ;
+statement : input+ ('|' expression)* output+ ;
 
-input: 'FROM' text '|';
+input: 'FROM' text;
 output: '|' 'TO' text;
 
 expression : expression (AND | OR | NOT) expression # logicalAssociatedExpression

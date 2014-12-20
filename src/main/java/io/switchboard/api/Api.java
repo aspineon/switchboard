@@ -19,7 +19,7 @@ import io.switchboard.streams.StreamManagement;
 /**
  * Created by Christoph Grotz on 07.12.14.
  */
-public class BasicApi extends SwitchboardHttpApp {
+public class Api extends SwitchboardHttpApp {
 
   private final ActorSystem actorSystem;
   private final ActorRef streamManagement;
@@ -27,13 +27,13 @@ public class BasicApi extends SwitchboardHttpApp {
   private final PathMatcher<String> id = PathMatchers.segment();
   private KafkaSubscriber producer = new KafkaSubscriber("switchboard");
 
-  private BasicApi(ActorSystem actorSystem) {
+  private Api(ActorSystem actorSystem) {
     this.actorSystem = actorSystem;
     this.streamManagement = actorSystem.actorOf(Props.create(StreamManagement.class));
   }
 
-  public static BasicApi apply(ActorSystem actorSystem) {
-    return new BasicApi(actorSystem);
+  public static Api apply(ActorSystem actorSystem) {
+    return new Api(actorSystem);
   }
 
   @Override

@@ -1,4 +1,4 @@
-package io.switchboard;
+package io.switchboard.boot;
 
 import java.io.*;
 import java.net.HttpURLConnection;
