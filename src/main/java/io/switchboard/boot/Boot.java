@@ -22,6 +22,8 @@ public class Boot {
       Options options = new Options();
       options.addOption("i", true, "interface");
       options.addOption("p", true, "port");
+      options.addOption("b", true, "broker list");
+      options.addOption("z", true, "zookeeper connect");
 
       PosixParser parser = new PosixParser();
       CommandLine cmd = parser.parse(options, args);
@@ -31,8 +33,7 @@ public class Boot {
       String brokerList =       Config.get().getPropertyValue(cmd, "b", Config.SWITCHBOARD_METADATA_BROKER_LIST, "localhost:9092");
       String zookeeperConnect = Config.get().getPropertyValue(cmd, "z", Config.SWITCHBOARD_ZOOKEEPER_CONNECT, "127.0.0.1:2181");
 
-      ActorSystem actorSystem = ActorSystem.create();
-      api(actorSystem).bindRoute(host, Integer.parseInt(portStr));
+      api(ActorSystem.create()).bindRoute(host, Integer.parseInt(portStr));
 
       /*
       Switchboard

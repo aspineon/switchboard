@@ -21,6 +21,9 @@ public class Pump {
     try {
       Options options = new Options();
       options.addOption("e", true, "expression");
+      options.addOption("g", true, "group id");
+      options.addOption("b", true, "broker list");
+      options.addOption("z", true, "zookeeper connect");
 
       PosixParser parser = new PosixParser();
       CommandLine cmd = parser.parse(options, args);
