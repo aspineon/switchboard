@@ -26,14 +26,10 @@ public class Boot {
       PosixParser parser = new PosixParser();
       CommandLine cmd = parser.parse(options, args);
 
-      String host =             getPropertyValue(cmd, "z", "SWITCHBOARD_HOST_INTERFACE",       "0.0.0.0");
-      Config.get().put(Config.SWITCHBOARD_HOST_INTERFACE, host);
-      String portStr =          getPropertyValue(cmd, "p", "SWITCHBOARD_HOST_PORT",            "8080");
-      Config.get().put(Config.SWITCHBOARD_HOST_PORT, portStr);
-      String brokerList =       getPropertyValue(cmd, "b", "SWITCHBOARD_METADATA_BROKER_LIST", "localhost:9092");
-      Config.get().put(Config.SWITCHBOARD_METADATA_BROKER_LIST, brokerList);
-      String zookeeperConnect = getPropertyValue(cmd, "z", "SWITCHBOARD_ZOOKEEPER_CONNECT",    "127.0.0.1:2181");
-      Config.get().put(Config.SWITCHBOARD_ZOOKEEPER_CONNECT, zookeeperConnect);
+      String host =             Config.get().getPropertyValue(cmd, "z", Config.SWITCHBOARD_HOST_INTERFACE, "0.0.0.0");
+      String portStr =          Config.get().getPropertyValue(cmd, "p", Config.SWITCHBOARD_HOST_PORT, "8080");
+      String brokerList =       Config.get().getPropertyValue(cmd, "b", Config.SWITCHBOARD_METADATA_BROKER_LIST, "localhost:9092");
+      String zookeeperConnect = Config.get().getPropertyValue(cmd, "z", Config.SWITCHBOARD_ZOOKEEPER_CONNECT, "127.0.0.1:2181");
 
       ActorSystem actorSystem = ActorSystem.create();
       api(actorSystem).bindRoute(host, Integer.parseInt(portStr));
@@ -56,30 +52,6 @@ public class Boot {
     catch(ParseException exp) {
       LOG.error("Error while parsing arguments", exp);
     }
-  }
-
-  private static Optional<String> getPropertyValue(CommandLine cmd, String opt, String env) {
-    Optional<String> property;
-    if (cmd.hasOption(opt)) {
-      property = Optional.of(cmd.getOptionValue(opt));
-    } else if (!Strings.isNullOrEmpty(System.getenv(env))) {
-      property = Optional.of(System.getenv(env));
-    } else {
-      property = Optional.empty();
-    }
-    return property;
-  }
-
-  private static String getPropertyValue(CommandLine cmd, String opt, String env, String def) {
-    String property;
-    if (cmd.hasOption(opt)) {
-      property = cmd.getOptionValue(opt);
-    } else if (!Strings.isNullOrEmpty(System.getenv(env))) {
-      property = System.getenv(env);
-    } else {
-      property = def;
-    }
-    return property;
   }
 
   private static Api api(ActorSystem actorSystem) {

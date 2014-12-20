@@ -9,6 +9,8 @@ import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
+
 /**
  * Created by Christoph Grotz on 20.12.14.
  */
@@ -23,29 +25,24 @@ public class Pump {
       PosixParser parser = new PosixParser();
       CommandLine cmd = parser.parse(options, args);
 
-      String expression;
-      if (cmd.hasOption("e")) {
-        expression = cmd.getOptionValue("e");
-      } else if (!Strings.isNullOrEmpty(System.getenv("SWITCHBOARD_EXPRESSION"))) {
-        expression = System.getenv("SWITCHBOARD_EXPRESSION");
-      } else {
+      Optional<String> expression = Config.get().getPropertyValue(cmd, "e", Config.SWITCHBOARD_EXPRESSION);
+      if (!expression.isPresent()) {
         throw new IllegalArgumentException("Missing expression");
       }
 
-      String groupId;
-      if (cmd.hasOption("g")) {
-        groupId = cmd.getOptionValue("g");
-      } else if (!Strings.isNullOrEmpty(System.getenv("SWITCHBOARD_GROUP_ID"))) {
-        groupId = System.getenv("SWITCHBOARD_GROUP_ID");
-      } else {
+      Optional<String> groupId = Config.get().getPropertyValue(cmd, "g", Config.SWITCHBOARD_GROUP_ID);
+      if (!groupId.isPresent()) {
         throw new IllegalArgumentException("Missing groupId");
       }
 
+      String brokerList = Config.get().getPropertyValue(cmd, "b", Config.SWITCHBOARD_METADATA_BROKER_LIST, "localhost:9092");
+      String zookeeperConnect = Config.get().getPropertyValue(cmd, "z", Config.SWITCHBOARD_ZOOKEEPER_CONNECT, "127.0.0.1:2181");
+
+
       ActorSystem actorSystem = ActorSystem.create();
 
-      Switchboard.expression(expression)
-        .runWithKafka(FlowMaterializer.create(actorSystem),
-          "adhoc-group-" + System.currentTimeMillis());
+      Switchboard.expression(expression.get())
+        .runWithKafka(FlowMaterializer.create(actorSystem), groupId.get());
     }
     catch(Exception exp) {
       LOG.error("Error while starting", exp);

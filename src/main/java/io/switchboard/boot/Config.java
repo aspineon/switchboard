@@ -1,8 +1,11 @@
 package io.switchboard.boot;
 
 import com.google.common.collect.Maps;
+import joptsimple.internal.Strings;
+import org.apache.commons.cli.CommandLine;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Created by Christoph Grotz on 20.12.14.
@@ -12,6 +15,8 @@ public class Config {
   public static final String SWITCHBOARD_HOST_PORT = "SWITCHBOARD_HOST_PORT";
   public static final String SWITCHBOARD_METADATA_BROKER_LIST = "SWITCHBOARD_METADATA_BROKER_LIST";
   public static final String SWITCHBOARD_ZOOKEEPER_CONNECT = "SWITCHBOARD_ZOOKEEPER_CONNECT";
+  public static final java.lang.String SWITCHBOARD_EXPRESSION = "SWITCHBOARD_EXPRESSION";
+  public static final java.lang.String SWITCHBOARD_GROUP_ID = "SWITCHBOARD_GROUP_ID";
 
   private Map<String, String> properties = Maps.newHashMap();
 
@@ -38,5 +43,32 @@ public class Config {
 
   public static Config get() {
     return instance;
+  }
+
+  public Optional<String> getPropertyValue(CommandLine cmd, String opt, String env) {
+    Optional<String> property;
+    if (cmd.hasOption(opt)) {
+      property = Optional.of(cmd.getOptionValue(opt));
+      put(Config.SWITCHBOARD_METADATA_BROKER_LIST, property.get());
+    } else if (!Strings.isNullOrEmpty(System.getenv(env))) {
+      property = Optional.of(System.getenv(env));
+      put(Config.SWITCHBOARD_METADATA_BROKER_LIST, property.get());
+    } else {
+      property = Optional.empty();
+    }
+    return property;
+  }
+
+  public String getPropertyValue(CommandLine cmd, String opt, String env, String def) {
+    String property;
+    if (cmd.hasOption(opt)) {
+      property = cmd.getOptionValue(opt);
+    } else if (!Strings.isNullOrEmpty(System.getenv(env))) {
+      property = System.getenv(env);
+    } else {
+      property = def;
+    }
+    put(Config.SWITCHBOARD_METADATA_BROKER_LIST, property);
+    return property;
   }
 }
