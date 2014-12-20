@@ -47,10 +47,6 @@ public class Boot {
       ActorSystem actorSystem = ActorSystem.create();
       api(actorSystem).bindRoute(host, Integer.parseInt(portStr));
 
-      Switchboard.expression("FROM switchboard | TO topic2")
-        .runWithKafka(FlowMaterializer.create(actorSystem),
-          "adhoc-group-" + System.currentTimeMillis());
-
       /*
       Switchboard
         .expression("FROM switchboard | type=request AND (country=India OR city=NY) AND value.numeric = 1 | TO topic2")
