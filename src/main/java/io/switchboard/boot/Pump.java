@@ -2,9 +2,7 @@ package io.switchboard.boot;
 
 import akka.actor.ActorSystem;
 import akka.stream.FlowMaterializer;
-import io.switchboard.api.Api;
 import io.switchboard.processing.Switchboard;
-import joptsimple.internal.Strings;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,19 +26,18 @@ public class Pump {
       PosixParser parser = new PosixParser();
       CommandLine cmd = parser.parse(options, args);
 
-      Optional<String> expression = Config.get().getPropertyValue(cmd, "e", Config.SWITCHBOARD_EXPRESSION);
+      Optional<String> expression = Config.get().extractPropertyValue(cmd, "e", Config.SWITCHBOARD_EXPRESSION);
       if (!expression.isPresent()) {
         throw new IllegalArgumentException("Missing expression");
       }
 
-      Optional<String> groupId = Config.get().getPropertyValue(cmd, "g", Config.SWITCHBOARD_GROUP_ID);
+      Optional<String> groupId = Config.get().extractPropertyValue(cmd, "g", Config.SWITCHBOARD_GROUP_ID);
       if (!groupId.isPresent()) {
         throw new IllegalArgumentException("Missing groupId");
       }
 
-      String brokerList = Config.get().getPropertyValue(cmd, "b", Config.SWITCHBOARD_METADATA_BROKER_LIST, "localhost:9092");
-      String zookeeperConnect = Config.get().getPropertyValue(cmd, "z", Config.SWITCHBOARD_ZOOKEEPER_CONNECT, "127.0.0.1:2181");
-
+      Config.get().extractPropertyValue(cmd, "b", Config.SWITCHBOARD_METADATA_BROKER_LIST, "localhost:9092");
+      Config.get().extractPropertyValue(cmd, "z", Config.SWITCHBOARD_ZOOKEEPER_CONNECT, "127.0.0.1:2181");
 
       ActorSystem actorSystem = ActorSystem.create();
 

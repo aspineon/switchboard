@@ -45,7 +45,7 @@ public class Config {
     return instance;
   }
 
-  public Optional<String> getPropertyValue(CommandLine cmd, String opt, String env) {
+  public Optional<String> extractPropertyValue(CommandLine cmd, String opt, String env) {
     Optional<String> property;
     if (cmd.hasOption(opt)) {
       property = Optional.of(cmd.getOptionValue(opt));
@@ -59,7 +59,7 @@ public class Config {
     return property;
   }
 
-  public String getPropertyValue(CommandLine cmd, String opt, String env, String def) {
+  public String extractPropertyValue(CommandLine cmd, String opt, String env, String def) {
     String property;
     if (cmd.hasOption(opt)) {
       property = cmd.getOptionValue(opt);

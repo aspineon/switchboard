@@ -2,12 +2,9 @@ package io.switchboard.boot;
 
 import akka.actor.ActorSystem;
 import io.switchboard.api.Api;
-import joptsimple.internal.Strings;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Optional;
 
 /**
  * Main class for switchboard
@@ -28,10 +25,10 @@ public class Boot {
       PosixParser parser = new PosixParser();
       CommandLine cmd = parser.parse(options, args);
 
-      String host =             Config.get().getPropertyValue(cmd, "z", Config.SWITCHBOARD_HOST_INTERFACE, "0.0.0.0");
-      String portStr =          Config.get().getPropertyValue(cmd, "p", Config.SWITCHBOARD_HOST_PORT, "8080");
-      String brokerList =       Config.get().getPropertyValue(cmd, "b", Config.SWITCHBOARD_METADATA_BROKER_LIST, "localhost:9092");
-      String zookeeperConnect = Config.get().getPropertyValue(cmd, "z", Config.SWITCHBOARD_ZOOKEEPER_CONNECT, "127.0.0.1:2181");
+      String host =             Config.get().extractPropertyValue(cmd, "z", Config.SWITCHBOARD_HOST_INTERFACE, "0.0.0.0");
+      String portStr =          Config.get().extractPropertyValue(cmd, "p", Config.SWITCHBOARD_HOST_PORT, "8080");
+      String brokerList =       Config.get().extractPropertyValue(cmd, "b", Config.SWITCHBOARD_METADATA_BROKER_LIST, "localhost:9092");
+      String zookeeperConnect = Config.get().extractPropertyValue(cmd, "z", Config.SWITCHBOARD_ZOOKEEPER_CONNECT, "127.0.0.1:2181");
 
       api(ActorSystem.create()).bindRoute(host, Integer.parseInt(portStr));
 
