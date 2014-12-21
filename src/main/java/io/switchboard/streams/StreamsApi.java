@@ -49,7 +49,6 @@ public class StreamsApi extends SwitchboardHttpApp {
 
   @Override
   public Route createRoute() {
-    ObjectMapper mapper = new ObjectMapper();
     return route(
       path(
         "api", "v1", "streams"
