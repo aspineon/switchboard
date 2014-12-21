@@ -20,7 +20,7 @@ public class StreamManagement extends AbstractActor {
   private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
   private MongoClient client;
 
-  private StreamManagement(String clientUri) throws UnknownHostException {
+  public StreamManagement(String clientUri) throws UnknownHostException {
     client = new MongoClient(new MongoClientURI(clientUri));
     DB switchboard = client.getDB("switchboard");
     DBCollection streams = switchboard.getCollection("streams");
@@ -80,6 +80,4 @@ public class StreamManagement extends AbstractActor {
   public static UpdateStream update(String streamId, Stream stream) {
     return new UpdateStream(streamId, stream);
   }
-
-
 }
