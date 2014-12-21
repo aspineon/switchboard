@@ -6,6 +6,7 @@ import kafka.consumer.ConsumerConfig;
 import kafka.consumer.KafkaStream;
 import kafka.consumer.TopicFilter;
 import kafka.javaapi.consumer.ConsumerConnector;
+import org.apache.kafka.clients.KafkaClient;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 

@@ -7,8 +7,16 @@ import akka.japi.pf.ReceiveBuilder;
 import com.mongodb.*;
 import io.switchboard.streams.domain.Stream;
 import io.switchboard.streams.messages.*;
+import kafka.cluster.Broker;
+import kafka.common.TopicAndPartition;
+import kafka.consumer.ConsumerThreadId;
+import kafka.utils.ZkUtils;
+import org.I0Itec.zkclient.ZkClient;
+import scala.collection.JavaConversions;
+import scala.collection.immutable.List;
 
 import java.net.UnknownHostException;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -19,6 +27,19 @@ public class StreamManagement extends AbstractActor {
   private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
   public StreamManagement(String clientUri) throws UnknownHostException {
+
+    ZkClient zkClient = new ZkClient("127.0.0.1:2181");
+    for(Broker broker : JavaConversions.asJavaList(ZkUtils.getAllBrokersInCluster(zkClient))) {
+      for( TopicAndPartition topicAndPartition : JavaConversions.asJavaSet(ZkUtils.getAllPartitions(zkClient))) {
+
+      }
+    }
+    Map<String, List<ConsumerThreadId>> map = JavaConversions.asJavaMap(ZkUtils.getConsumersPerTopic(zkClient, "switchboard", false));
+    for( String key: map.keySet()) {
+      java.util.List<ConsumerThreadId> consumerThreadIds =  JavaConversions.asJavaList(map.get(key));
+      System.out.println(key);
+    }
+
     MongoClient client = new MongoClient(new MongoClientURI(clientUri));
     DB switchboard = client.getDB("switchboard");
     DBCollection streams = switchboard.getCollection("streams");
