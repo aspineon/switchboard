@@ -3,9 +3,10 @@ package io.switchboard.streams;
 import akka.actor.AbstractActor;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import akka.http.server.japi.RouteResult;
 import akka.japi.pf.ReceiveBuilder;
 import com.mongodb.*;
+import io.switchboard.streams.domain.Stream;
+import io.switchboard.streams.messages.*;
 
 import java.net.UnknownHostException;
 import java.util.UUID;
@@ -31,21 +32,21 @@ public class StreamManagement extends AbstractActor {
       })
       .match(RetrieveStream.class, message -> {
         log.info("retrieve stream {}", message);
-        DBObject dbObject = streams.findOne(new BasicDBObject("id", message.id));
+        DBObject dbObject = streams.findOne(new BasicDBObject("id", message.getId()));
         sender().tell(new Stream().setId(dbObject.get("id").toString()).setName(dbObject.get("name").toString()), self());
       })
       .match(DeleteStream.class, message -> {
         log.info("delete stream {}", message);
-        DBObject dbObject = streams.findOne(new BasicDBObject("id", message.id));
+        DBObject dbObject = streams.findOne(new BasicDBObject("id", message.getId()));
         Stream stream = new Stream().setId(dbObject.get("id").toString()).setName(dbObject.get("name").toString());
-        streams.remove(new BasicDBObject("id", message.id));
+        streams.remove(new BasicDBObject("id", message.getId()));
         sender().tell(stream, self());
       })
       .match(UpdateStream.class, message -> {
         log.info("update stream {}", message);
         Stream stream = message.getStream();
         stream.setId(message.getStreamId());
-        streams.update(new BasicDBObject("id", message.getStreamId()), new BasicDBObject("id",message.getStreamId()).append("name",message.getStream().getName()));
+        streams.update(new BasicDBObject("id", message.getStreamId()), new BasicDBObject("id", message.getStreamId()).append("name", message.getStream().getName()));
         sender().tell(stream, self());
       })
       .match(CreateStream.class, message -> {
@@ -60,41 +61,10 @@ public class StreamManagement extends AbstractActor {
       .build());
   }
 
-  public static class Stream implements RouteResult {
-    private String name;
-    private String id;
-
-    private Stream() {
-    }
-
-    private Stream(String id, String name) {
-      this.name = name;
-      this.id = id;
-    }
-
-
-    public String getName() {
-      return name;
-    }
-
-    public Stream setName(String name) {
-      this.name = name;
-      return this;
-    }
-
-    public String getId() {
-      return id;
-    }
-
-    public Stream setId(String id) {
-      this.id = id;
-      return this;
-    }
-  }
-
   public static RetrieveStreams retrieve() {
     return new RetrieveStreams();
   }
+
   public static RetrieveStream retrieve(String id) {
     return new RetrieveStream(id);
   }
@@ -111,60 +81,5 @@ public class StreamManagement extends AbstractActor {
     return new UpdateStream(streamId, stream);
   }
 
-  private static class RetrieveStreams {
-  }
 
-  private static class DeleteStream {
-    private final String id;
-
-    public DeleteStream(String id) {
-      this.id = id;
-    }
-
-    public String getId() {
-      return id;
-    }
-  }
-
-  private static class RetrieveStream {
-    private final String id;
-
-    public RetrieveStream(String id) {
-      this.id = id;
-    }
-
-    public String getId() {
-      return id;
-    }
-  }
-
-  private static class CreateStream {
-    private final Stream stream;
-
-    public CreateStream(Stream stream) {
-      this.stream = stream;
-    }
-
-    public Stream getStream() {
-      return stream;
-    }
-  }
-
-  private static class UpdateStream {
-    private final String streamId;
-    private final Stream stream;
-
-    public UpdateStream(String streamId, Stream stream) {
-      this.streamId =  streamId;
-      this.stream = stream;
-    }
-
-    public Stream getStream() {
-      return stream;
-    }
-
-    public String getStreamId() {
-      return streamId;
-    }
-  }
 }

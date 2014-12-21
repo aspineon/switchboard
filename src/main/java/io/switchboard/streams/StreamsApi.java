@@ -1,4 +1,4 @@
-package io.switchboard.api;
+package io.switchboard.streams;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
@@ -14,11 +14,11 @@ import akka.pattern.Patterns;
 import akka.stream.FlowMaterializer;
 import akka.stream.javadsl.Source;
 import akka.stream.scaladsl.SubscriberSink;
-import akka.util.ByteString;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.switchboard.api.SwitchboardHttpApp;
 import io.switchboard.boot.Config;
 import io.switchboard.kafka.KafkaSubscriber;
-import io.switchboard.streams.StreamManagement;
+import io.switchboard.streams.domain.Stream;
 import org.reactivestreams.Subscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,9 +58,9 @@ public class StreamsApi extends SwitchboardHttpApp {
           completeWithActorCall(streamManagement, StreamManagement.retrieve(), 1000)
         ),
         post(
-          handleWith(ctx -> completeWithActorCall(ctx, StreamManagement.Stream.class, new JavaPartialFunction<StreamManagement.Stream, Future<Object>>() {
+          handleWith(ctx -> completeWithActorCall(ctx, Stream.class, new JavaPartialFunction<Stream, Future<Object>>() {
             @Override
-            public Future<Object> apply(StreamManagement.Stream stream, boolean isCheck) throws Exception {
+            public Future<Object> apply(Stream stream, boolean isCheck) throws Exception {
               return Patterns.ask(streamManagement, StreamManagement.create(stream), 1000);
             }
           }))
@@ -78,9 +78,9 @@ public class StreamsApi extends SwitchboardHttpApp {
           )
         ),
         put(
-          handleWith(id, (ctx, streamId) -> completeWithActorCall(ctx, StreamManagement.Stream.class, new JavaPartialFunction<StreamManagement.Stream, Future<Object>>() {
+          handleWith(id, (ctx, streamId) -> completeWithActorCall(ctx, Stream.class, new JavaPartialFunction<Stream, Future<Object>>() {
             @Override
-            public Future<Object> apply(StreamManagement.Stream stream, boolean isCheck) throws Exception {
+            public Future<Object> apply(Stream stream, boolean isCheck) throws Exception {
               return Patterns.ask(streamManagement, StreamManagement.update(streamId, stream), 1000);
             }
           }))
