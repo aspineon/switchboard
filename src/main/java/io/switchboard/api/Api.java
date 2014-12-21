@@ -22,14 +22,9 @@ import io.switchboard.streams.StreamManagement;
 public class Api extends SwitchboardHttpApp {
 
   private final ActorSystem actorSystem;
-  private final ActorRef streamManagement;
-
-  private final PathMatcher<String> id = PathMatchers.segment();
-  private KafkaSubscriber producer = new KafkaSubscriber("switchboard");
 
   private Api(ActorSystem actorSystem) {
     this.actorSystem = actorSystem;
-    this.streamManagement = actorSystem.actorOf(Props.create(StreamManagement.class));
   }
 
   public static Api apply(ActorSystem actorSystem) {
@@ -49,31 +44,7 @@ public class Api extends SwitchboardHttpApp {
           return ctx.complete(response);
         })
       ),
-      path(
-        "api","v1","streams"
-      ).route(
-        get(
-          completeWithActorCall(streamManagement, StreamManagement.retrieve(), 1000)
-        )
-      ),
-      path(
-              "api","v1","streams", id
-      ).route(
-              post(
-                      handleWith(
-                              id,
-                              (ctx, stream) -> {
-                                HttpEntity entity = ctx.request().entity();
-
-                                entity.getDataBytes()
-                                        .to(new SubscriberSink(producer))
-                                        .run(FlowMaterializer.create(actorSystem));
-
-                                return ctx.completeWithStatus(200);
-                              }
-                      )
-              )
-      )
+      StreamsApi.create(actorSystem).createRoute()
     );
   }
 

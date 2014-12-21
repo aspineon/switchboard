@@ -8,14 +8,12 @@ import akka.http.model.headers.Accept$;
 import akka.http.model.japi.*;
 import akka.http.model.japi.headers.Accept;
 import akka.http.model.japi.headers.RawHeader;
-import akka.http.server.japi.HttpApp;
-import akka.http.server.japi.RequestContext;
-import akka.http.server.japi.Route;
-import akka.http.server.japi.RouteResult;
+import akka.http.server.japi.*;
 import akka.http.server.japi.impl.RouteResultImpl;
 import akka.japi.*;
 import akka.pattern.Patterns;
 import akka.stream.javadsl.Source;
+import akka.stream.scaladsl.SourcePipe;
 import akka.util.ByteString;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
@@ -23,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.collect.Iterables;
 import com.google.common.net.HttpHeaders;
+import io.switchboard.streams.StreamManagement;
 import scala.concurrent.Future;
 
 import javax.xml.bind.JAXB;
@@ -42,7 +41,7 @@ public abstract class SwitchboardHttpApp extends HttpApp {
     );
   }
 
-  private ContentType extractResponseType(RequestContext ctx) {
+  protected ContentType extractResponseType(RequestContext ctx) {
     Accept accept = ctx.request().getHeader(Accept.class).getOrElse(Accept.create(MediaRanges.create(MediaTypes.APPLICATION_JSON)));
     if(Iterables.contains(accept.getMediaRanges(), MediaRanges.create(MediaTypes.APPLICATION_JSON))) {
       return ContentType.create(MediaTypes.APPLICATION_JSON);
@@ -55,7 +54,27 @@ public abstract class SwitchboardHttpApp extends HttpApp {
     }
   }
 
-  private static class Marshalling extends JavaPartialFunction<Object, ByteString> {
+  protected <T> RouteResult completeWithActorCall(RequestContext ctx, final Class<T> valueType, JavaPartialFunction<T, Future<Object>> actorCall) {
+    final ObjectMapper mapper = new ObjectMapper();
+    final ContentType contentType = extractResponseType(ctx);
+    SourcePipe<ByteString> source = (SourcePipe<ByteString>)
+      ((SourcePipe<T>)ctx.request().entity().getDataBytes().collect(new JavaPartialFunction<ByteString, Object>() {
+        @Override
+        public Object apply(ByteString x, boolean isCheck) throws Exception {
+          return mapper.readValue(x.utf8String(), valueType);
+        }
+      })).mapAsync(actorCall).map(new JavaPartialFunction<Object, ByteString>() {
+        @Override
+        public ByteString apply(Object param, boolean isCheck) throws Exception {
+          ObjectWriter writer = new ObjectMapper().enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY).writer();
+          return ByteString.fromString(writer.writeValueAsString(param));
+        }
+      });
+
+    return ctx.complete(HttpResponse.create().withEntity(HttpEntities.createChunked(contentType, source)));
+  }
+
+  public static class Marshalling extends JavaPartialFunction<Object, ByteString> {
     private final RequestContext ctx;
 
     public Marshalling(RequestContext ctx) {
