@@ -3,17 +3,11 @@ package io.switchboard.streams;
 import akka.actor.AbstractActor;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import akka.http.server.japi.PathMatcher;
 import akka.http.server.japi.RouteResult;
 import akka.japi.pf.ReceiveBuilder;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Lists;
-import kafka.utils.ZkUtils;
-import org.I0Itec.zkclient.ZkClient;
-import scala.collection.Seq;
-import scala.collection.JavaConverters;
+import com.mongodb.*;
 
-import java.util.List;
+import java.net.UnknownHostException;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -23,34 +17,44 @@ import java.util.stream.Collectors;
 public class StreamManagement extends AbstractActor {
 
   private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
+  private MongoClient client;
 
-  private ZkClient zkClient = new ZkClient("127.0.0.1:2181");
-
-  public StreamManagement() {
+  private StreamManagement(String clientUri) throws UnknownHostException {
+    client = new MongoClient(new MongoClientURI(clientUri));
+    DB switchboard = client.getDB("switchboard");
+    DBCollection streams = switchboard.getCollection("streams");
 
     receive(ReceiveBuilder
       .match(RetrieveStreams.class, message -> {
         log.info("retrieve streams {}", message);
-        sender().tell(Lists.newArrayList(new Stream(UUID.randomUUID().toString(), "stream1"), new Stream(UUID.randomUUID().toString(), "stream2"),new Stream(UUID.randomUUID().toString(), "stream3")), self());
+        sender().tell(streams.find().toArray().stream().map(dbObject -> new Stream().setId(dbObject.get("id").toString()).setName(dbObject.get("name").toString())).collect(Collectors.toList()), self());
       })
       .match(RetrieveStream.class, message -> {
         log.info("retrieve stream {}", message);
-        sender().tell(new Stream(message.getId(), "stream" + message.getId()), self());
+        DBObject dbObject = streams.findOne(new BasicDBObject("id", message.id));
+        sender().tell(new Stream().setId(dbObject.get("id").toString()).setName(dbObject.get("name").toString()), self());
       })
       .match(DeleteStream.class, message -> {
         log.info("delete stream {}", message);
-        sender().tell(new Stream(message.getId(), "stream"+message.getId()), self());
+        DBObject dbObject = streams.findOne(new BasicDBObject("id", message.id));
+        Stream stream = new Stream().setId(dbObject.get("id").toString()).setName(dbObject.get("name").toString());
+        streams.remove(new BasicDBObject("id", message.id));
+        sender().tell(stream, self());
       })
       .match(UpdateStream.class, message -> {
         log.info("update stream {}", message);
         Stream stream = message.getStream();
         stream.setId(message.getStreamId());
+        streams.update(new BasicDBObject("id", message.getStreamId()), new BasicDBObject("id",message.getStreamId()).append("name",message.getStream().getName()));
         sender().tell(stream, self());
       })
       .match(CreateStream.class, message -> {
         log.info("create stream {}", message);
+        String id = UUID.randomUUID().toString();
+
         Stream stream = message.getStream();
-        stream.setId(UUID.randomUUID().toString());
+        stream.setId(id);
+        streams.insert(new BasicDBObject("id", id).append("name", message.getStream().getName()));
         sender().tell(stream, self());
       })
       .build());
@@ -73,16 +77,18 @@ public class StreamManagement extends AbstractActor {
       return name;
     }
 
-    public void setName(String name) {
+    public Stream setName(String name) {
       this.name = name;
+      return this;
     }
 
     public String getId() {
       return id;
     }
 
-    public void setId(String id) {
+    public Stream setId(String id) {
       this.id = id;
+      return this;
     }
   }
 

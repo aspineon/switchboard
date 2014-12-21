@@ -16,6 +16,7 @@ import akka.stream.javadsl.Source;
 import akka.stream.scaladsl.SubscriberSink;
 import akka.util.ByteString;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.switchboard.boot.Config;
 import io.switchboard.kafka.KafkaSubscriber;
 import io.switchboard.streams.StreamManagement;
 import org.reactivestreams.Subscriber;
@@ -39,7 +40,7 @@ public class StreamsApi extends SwitchboardHttpApp {
   private StreamsApi(ActorSystem actorSystem) {
     this.actorSystem = actorSystem;
     this.subscriber = new KafkaSubscriber("switchboard");
-    this.streamManagement = actorSystem.actorOf(Props.create(StreamManagement.class));
+    this.streamManagement = actorSystem.actorOf(Props.create(StreamManagement.class, Config.get().get(Config.SWITCHBOARD_MONGO_URI)));
   }
 
   public static StreamsApi create(ActorSystem actorSystem) {

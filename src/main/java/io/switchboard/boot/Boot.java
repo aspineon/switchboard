@@ -20,6 +20,7 @@ public class Boot {
       options.addOption("i", true, "interface");
       options.addOption("p", true, "port");
       options.addOption("b", true, "broker list");
+      options.addOption("u", true, "MongoDB Uri");
       options.addOption("z", true, "zookeeper connect");
 
       PosixParser parser = new PosixParser();
@@ -27,8 +28,9 @@ public class Boot {
 
       String host =             Config.get().extractPropertyValue(cmd, "z", Config.SWITCHBOARD_HOST_INTERFACE, "0.0.0.0");
       String portStr =          Config.get().extractPropertyValue(cmd, "p", Config.SWITCHBOARD_HOST_PORT, "8080");
-      String brokerList =       Config.get().extractPropertyValue(cmd, "b", Config.SWITCHBOARD_METADATA_BROKER_LIST, "localhost:9092");
-      String zookeeperConnect = Config.get().extractPropertyValue(cmd, "z", Config.SWITCHBOARD_ZOOKEEPER_CONNECT, "127.0.0.1:2181");
+      Config.get().extractPropertyValue(cmd, "b", Config.SWITCHBOARD_METADATA_BROKER_LIST, "localhost:9092");
+      Config.get().extractPropertyValue(cmd, "z", Config.SWITCHBOARD_ZOOKEEPER_CONNECT, "127.0.0.1:2181");
+      Config.get().extractPropertyValue(cmd, "u", Config.SWITCHBOARD_MONGO_URI, "mongodb://localhost:27017");
 
       api(ActorSystem.create()).bindRoute(host, Integer.parseInt(portStr));
 

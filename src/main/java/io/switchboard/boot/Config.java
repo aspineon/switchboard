@@ -17,6 +17,7 @@ public class Config {
   public static final String SWITCHBOARD_ZOOKEEPER_CONNECT = "SWITCHBOARD_ZOOKEEPER_CONNECT";
   public static final java.lang.String SWITCHBOARD_EXPRESSION = "SWITCHBOARD_EXPRESSION";
   public static final java.lang.String SWITCHBOARD_GROUP_ID = "SWITCHBOARD_GROUP_ID";
+  public static final java.lang.String SWITCHBOARD_MONGO_URI = "SWITCHBOARD_MONGO_URI";
 
   private Map<String, String> properties = Maps.newHashMap();
 
@@ -49,10 +50,10 @@ public class Config {
     Optional<String> property;
     if (cmd.hasOption(opt)) {
       property = Optional.of(cmd.getOptionValue(opt));
-      put(Config.SWITCHBOARD_METADATA_BROKER_LIST, property.get());
+      put(env, property.get());
     } else if (!Strings.isNullOrEmpty(System.getenv(env))) {
       property = Optional.of(System.getenv(env));
-      put(Config.SWITCHBOARD_METADATA_BROKER_LIST, property.get());
+      put(env, property.get());
     } else {
       property = Optional.empty();
     }
@@ -68,7 +69,7 @@ public class Config {
     } else {
       property = def;
     }
-    put(Config.SWITCHBOARD_METADATA_BROKER_LIST, property);
+    put(env, property);
     return property;
   }
 }
